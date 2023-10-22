@@ -1,0 +1,57 @@
+{
+  "name": "colossus",
+  "version": "1.0.0",
+  "description": "Project for 'Desenvolvimento Integrado de Sistemas'",
+  "main": "index.js",
+  "scripts": {
+    "test": "test",
+    "start": "nodemon --exec babel-node src/index.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/MateusBittencourt/Colossus.git"
+  },
+  "author": "Mateus Bittencourt",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/MateusBittencourt/Colossus/issues"
+  },
+  "homepage": "https://github.com/MateusBittencourt/Colossus#readme",
+  "devDependencies": {
+    "@babel/cli": "^7.23.0",
+		"@babel/eslint-parser": "7.22.15",
+		"@babel/node": "^7.22.19",
+		"@babel/plugin-syntax-import-assertions": "7.22.5",
+		"@babel/preset-env": "^7.23.2",
+    "@typescript-eslint/eslint-plugin": "6.7.4",
+		"@typescript-eslint/parser": "6.7.4",
+    "eslint": "^8.52.0",
+    "nodemon": "^3.0.1",
+    "lint-staged": "14.0.1",
+		"markdownlint": "0.31.1",
+		"markdownlint-cli": "0.37.0",
+    "eslint-plugin-jest": "27.4.2",
+		"eslint-plugin-jsdoc": "46.8.2",
+		"eslint-plugin-svelte": "2.33.2",
+		"eslint-plugin-unicorn": "48.0.1",
+		"eslint-plugin-vue": "9.17.0",
+		"eslint-plugin-wdio": "8.8.7",
+		"eslint-plugin-yml": "1.9.0"
+  },
+  "dependencies": {
+    "csv-parser": "^3.0.0",
+    "express": "^4.18.2",
+    "mathjs": "^11.11.2"
+  },
+  "lint-staged": {
+		"*.cjs": "eslint",
+		"*.js": "eslint",
+		"*.mjs": "eslint",
+		"*.md": "markdownlint --config .markdownlint.json",
+		"*.sh": "shellcheck",
+		"*.svelte": "eslint",
+		"*.vue": "eslint",
+		"*.yml": "eslint",
+		"*.yaml": "eslint"
+	}
+}
