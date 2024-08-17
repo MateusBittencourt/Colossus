@@ -1,13 +1,12 @@
-import { cgne, cgnr } from './algorithms.js';
-import { importCSVAsColumnArray, importCSVAsMatrix } from './support.js';
+import { cgne, cgne_2, signalGain } from './algorithms.js';
+import { importCSVAsColumnArray, importCSVAsMatrix, createImageFromArray } from './support.js';
 
 export async function helloWorld() {
-    const H1 = await importCSVAsColumnArray('./data/H-2.csv');
-    const G1 = await importCSVAsColumnArray('./data/G-30x30-1.csv');
+    console.log("starting");
+    const H1 = await importCSVAsMatrix('./data/H-2.csv');
+    const G1 = await importCSVAsColumnArray('./data/G-30x30-2.csv');
 
-    const result = cgne(H1, G1);
+    const result = await cgne(H1, G1);
 
-    // console.log(G1);
-
-    return result;
+    await createImageFromArray(result, 'output.png');
 }

@@ -4,9 +4,10 @@ import { helloWorld } from '../src/manager.js'
 const router = Router();
 
 router.get('/helloWorld', async (req, res) => {
-    const resp = await helloWorld();
+    await helloWorld();
 
-    res.send(`Hello World\n\n${resp}`);
+    console.log("done");
+    res.sendFile('output.png', { root : '.' });
 });
 
 export default router;

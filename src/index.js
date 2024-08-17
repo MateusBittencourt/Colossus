@@ -24,7 +24,7 @@ app.get('*', (req, res) => {
 });
 
 // Set the port
-const port = '3000';
+const port = '5000';
 app.set('port', port);
 
 // Create the http server.
