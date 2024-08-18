@@ -6,7 +6,10 @@ export async function helloWorld() {
     const H1 = await importCSVAsMatrix('./data/H-2.csv');
     const G1 = await importCSVAsColumnArray('./data/G-30x30-2.csv');
 
-    const result = await cgne(H1, G1);
+    const { image, error, iterations } = await cgne(H1, signalGain(G1, 436, 64));
 
-    await createImageFromArray(result, 'output.png');
+    await createImageFromArray(image, 'output.png');
+    
+    console.log("error", error);
+    console.log("iterations", iterations);
 }

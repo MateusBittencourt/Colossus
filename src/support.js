@@ -1,7 +1,7 @@
 import fs from 'node:fs';
 import csv from 'csv-parser';
 import { Matrix } from 'ml-matrix';
-import sharp from 'sharp';
+import sharp, { kernel } from 'sharp';
 
 
 export async function importCSVAsColumnArray(filePath) {
@@ -17,7 +17,7 @@ export async function importCSVAsColumnArray(filePath) {
             })
             .on('error', reject);
     });
-    return new Matrix(data);
+    return data;
 }
 
 export async function importCSVAsMatrix(filePath) {
@@ -35,20 +35,26 @@ export async function importCSVAsMatrix(filePath) {
             })
             .on('error', reject);
     });
-    return new Matrix(data);
+    return data;
 }
 
 export async function createImageFromArray(array, filePath) {
-    return await sharp(Buffer.from(array), {
+    await new Promise(resolve => sharp(Buffer.from(array), {
         raw: {
             width: 30,
             height: 30,
             channels: 1 // Grayscale image, so only one channel
         }
     })
+    .resize(600, 600, {
+        kernel: kernel.nearest
+    })
+    .rotate(-90) // Rotate 90 degrees
+    .flop() // Flip the image horizontally
     .png() // Convert to PNG format
     .toFile(filePath, (err, info) => {
         if (err) throw err;
-        console.log('Image saved:', info);
-    });
+        // console.log('Image saved:', info);
+        resolve();
+    }));
 }

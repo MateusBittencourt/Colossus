@@ -1,5 +1,5 @@
 import { Matrix } from 'ml-matrix';
-const { add, sub, mul, div, mod, max, min, zeros } = Matrix
+const { add, sub, multiply, div, mod, max, min, zeros } = Matrix
 
 // /**
 //  * Transpose a matrix (H) and calculate its norm
@@ -22,70 +22,80 @@ const { add, sub, mul, div, mod, max, min, zeros } = Matrix
 //     return max(abs(multiply(transpose(H), g))) * 0.10;
 // }
 
-/**
- * Calculate the error
- *
- * @param {Matrix} r0 - r vector at time i
- * @param {Matrix} r1 - r vector at time i+1
- * @return {number}
- */
-function calculateError(r0, r1) {
-    return r1.norm() - r0.norm();
-}
 
 function normalize(matrix) {
-    matrix = matrix.sub(matrix.min());
-    matrix = matrix.div(matrix.max());
-    matrix = matrix.mul(255);
+    const min = matrix.min();
+    const max = matrix.max();
 
-    return matrix.to1DArray();
+    return multiply(matrix.sub(min), 255 / (max - min)).to1DArray();
 }
 
-// /**
-//  * Signal gain and adjustment of g
-//  *
-//  * @param {Matrix} g - signal array
-//  * @param {number} N - number of signals
-//  * @param {number} S - number of signal samples
-//  */
-// export function signalGain(g, N, S) {
-//     for (let c = 0; c <= N; c++) {
-//         for (let l = 0; l <= S; l++) {
-//             const gamma = 100 + 1 / 20 * l * Math.sqrt(l);
-//             g[l][c] = g[l][c] * gamma;
-//         }
-//     }
-
-//     return g;
-// }
+/**
+ * Signal gain and adjustment of g
+ *
+ * @param {Array<Array<number>>} g - signal array
+ * @param {number} S - number of signal samples
+ * @param {number} N - number of signals
+ * @return {Array<Array<number>>}
+ */
+export function signalGain(g, S, N) {
+    for (let c = 0; c < N; c++) {
+        for (let l = 0; l < S; l++) {
+            const gamma = 100 + 1 / 20 * l * Math.sqrt(l);
+            g[c*S + l][0] = g[c*S + l][0] * gamma;
+        }
+    }
+    return g;
+}
 
 /**
  * CGNE algorithm
  *
- * @param {Matrix} H - model matrix
- * @param {Matrix} g - signal array
+ * @param {Array<Array<number>>} H_source - model matrix
+ * @param {Array<Array<number>>} g_source - signal array
+ * @param {number} maxIte - maximum number of iterations
+ * @param {number} tolerance - tolerance for the error
  */
-export async function cgne(H, g) {
-    let f0 = 0;
-    let r0 = g;
-    let p0 = H.transpose().mmul(r0);
+export async function cgne(H_source, g_source, maxIte = 1000, tolerance = 1e-4) {
 
-    let f1, r1, p1;
+    const H = new Matrix(H_source);
+    const g = new Matrix(g_source);
+    const Ht = H.transpose();
 
-    for (let i = 0; i < 1000; i++) {
-        // console.log(i);
-        const alpha = div(r0.transpose().mmul(r0), (p0.transpose().mmul(p0))).get(0, 0);
-        f1 = f0 > 0 ? add(f0, mul(p0, alpha)) : mul(p0, alpha);
-        r1 = sub(r0, mul(H.mmul(p0), alpha));
-        const beta = div(r1.transpose().mmul(r1), (r0.transpose().mmul(r0))).get(0, 0);
-        p1 = add(H.transpose().mmul(r1), mul(p0, beta));
+    let f = 0;
+    let r = g;
+    let p = Ht.mmul(r);
+    let r_old_norm = r.norm();
+    let alpha_num = r.transpose().mmul(r);
+    
+    let error, iterations;
 
-        if (calculateError(r0, r1) < 1e-10) {
+    for (iterations = 0; iterations < maxIte; iterations++) {
+        const alpha_den = p.transpose().mmul(p);
+        const alpha = div(alpha_num, alpha_den).get(0, 0);
+
+        f = f > 0 ? add(f, multiply(p, alpha)) : multiply(p, alpha);
+        r = sub(r, multiply(H.mmul(p), alpha));
+
+        const r_norm = r.norm();
+        error = r_norm - r_old_norm;
+        if (error < tolerance) {
             break;
         }
-        f0 = f1;
-        r0 = r1;
-        p0 = p1;
+
+        const beta_num = r.transpose().mmul(r);
+        const beta_den = alpha_num;
+        const beta = div(beta_num, beta_den).get(0, 0);
+        
+        p = add(Ht.mmul(r), multiply(p, beta));
+
+        r_old_norm = r_norm;
+        alpha_num = beta_num;
     }
-    return normalize(f1);
+
+    return {
+        image: normalize(f),
+        error,
+        iterations
+    };
 }
